@@ -208,6 +208,8 @@ public class GlobalTouchService extends Service implements OnTouchListener {
                     holdTime.add(Long.parseLong("0"));
                     KeyUp_keyDown_time.add(Long.parseLong("0"));
                     velocita.add(new Velocita(0,0));
+                    posizionePressione.add(new Posizione(0,0));
+                    posizioneRilascio.add(new Posizione(0,0));
                 }
                 System.out.println("*****fuori schermo**** x: "+event.getX()+" y:"+event.getY());
                 break;
