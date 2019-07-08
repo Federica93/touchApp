@@ -14,12 +14,14 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
     public final static int REQUEST_CODE = -1010101;
-    String file="file",time;
+    String file="file",time,mode,phone,walker,sex;
     Intent globalService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // istanzia intent
         globalService = new Intent(this,GlobalTouchService.class);
         checkDrawOverlayPermission();
     }
@@ -43,14 +45,26 @@ public class MainActivity extends Activity {
     }
 
     public void buttonClicked(View v){
-
+// una volta riempito il form, i dati verranno inviati come parametri al servizi attivato dall'intent
         if(v.getTag() == null){
-            TextView textTime = (TextView) findViewById(R.id.tempo);
+            TextView textTime = (TextView) findViewById(R.id.time);
             time = textTime.getText().toString();
             globalService.putExtra("time", time);
             TextView textFile = (TextView) findViewById(R.id.file);
             file = textFile.getText().toString();
             globalService.putExtra("file", file);
+            TextView textMode = (TextView) findViewById(R.id.mode);
+            mode = textMode.getText().toString();
+            globalService.putExtra("mode", mode);
+            TextView textPhone = (TextView) findViewById(R.id.phone);
+            phone = textPhone.getText().toString();
+            globalService.putExtra("phone", phone);
+            TextView textWalker = (TextView) findViewById(R.id.walker);
+            walker = textWalker.getText().toString();
+            globalService.putExtra("walker", walker);
+            TextView textSex = (TextView) findViewById(R.id.sex);
+            sex = textSex.getText().toString();
+            globalService.putExtra("sex", sex);
             startService(globalService);
             this.finish();
             v.setTag("on");

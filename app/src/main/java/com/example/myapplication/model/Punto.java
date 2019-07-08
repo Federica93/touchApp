@@ -27,4 +27,8 @@ public class Punto {
     public long getTimestamp(){
         return timestamp;
     }
+
+    public String toString(){
+        return ("x: "+x+" y: "+y+" z: "+z);
+    }
 }
