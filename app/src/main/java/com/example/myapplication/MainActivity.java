@@ -1,7 +1,6 @@
 package com.example.myapplication;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -42,6 +41,11 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "Access granted",Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    public void conv(View v){
+        Intent intent = new Intent(this, ConvertActivity.class);
+        startActivity(intent);
     }
 
     public void buttonClicked(View v){

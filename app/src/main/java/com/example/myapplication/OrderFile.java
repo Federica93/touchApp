@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import android.hardware.SensorManager;
+
 import com.example.myapplication.model.Punto;
 
 import java.io.File;
@@ -86,9 +88,30 @@ public class OrderFile {
         return giroscopio;
     }
 
-    /*public static void main(String[] args) throws FileNotFoundException {
+    public void calculateOrientation(){
 
-        Scanner sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\XiaomiMiA2Lite\\Maria\\MARIA_UP_accelerometro.csv"));
+        float[] rMatrix = new float[9];
+        float[] orientationValues = new float[3];
+
+        SensorManager.getRotationMatrixFromVector(rMatrix, orientationValues);
+
+        //calculate Euler angles now
+        SensorManager.getOrientation(rMatrix, orientationValues);
+
+        //The results are in radians, need to convert it to degrees
+        convertToDegrees(orientationValues);
+    }
+
+    private void convertToDegrees(float[] vector){
+        for (int i = 0; i < vector.length; i++){
+            vector[i] = Math.round(Math.toDegrees(vector[i]));
+        }
+        System.out.println("yaw: "+vector[0]+" pitch: "+vector[1]+" roll: "+vector[2]);
+
+    }
+    public static void main(String[] args) throws FileNotFoundException {
+
+        Scanner sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\Vecchie Maria_Al\\XiaomiMiA2Lite\\Maria\\MARIA_UP_accelerometro.csv"));
 
         ArrayList<Punto> acc = new ArrayList<>();
 
@@ -101,7 +124,7 @@ public class OrderFile {
             acc.add(p);
         }
 
-        sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\XiaomiMiA2Lite\\Maria\\MARIA_UP_magnetometro.csv"));
+        sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\Vecchie Maria_Al\\XiaomiMiA2Lite\\Maria\\MARIA_UP_magnetometro.csv"));
 
         ArrayList<Punto> mag = new ArrayList<>();
         lin = sc.nextLine();
@@ -113,7 +136,7 @@ public class OrderFile {
         }
 
 
-        sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\XiaomiMiA2Lite\\Maria\\MARIA_UP_giroscopio.csv"));
+        sc = new Scanner(new File("C:\\Users\\feder\\Desktop\\Vecchie Maria_Al\\XiaomiMiA2Lite\\Maria\\MARIA_UP_giroscopio.csv"));
         lin = sc.nextLine();
         ArrayList<Punto> gyr = new ArrayList<>();
 
@@ -125,8 +148,8 @@ public class OrderFile {
         }
 
         OrderFile o = new OrderFile(acc, mag, gyr);
-        o.order();
-        ArrayList<Punto> accelerometro = new ArrayList<>();
+        o.calculateOrientation();
+       /* ArrayList<Punto> accelerometro = new ArrayList<>();
         ArrayList<Punto> magnetometro = new ArrayList<>();
         ArrayList<Punto> giroscopio = new ArrayList<>();
 
@@ -149,6 +172,6 @@ public class OrderFile {
                     ";" + magnetometro.get(i).getZ() + ";" + giroscopio.get(i).getX() + ";" + giroscopio.get(i).getY() +
                     ";" + giroscopio.get(i).getZ() + ";" + mode + ";" + walker + ";" + phone + ";" + sex + "\n");
         }
-        p.close();
-    }*/
+        p.close();*/
+    }
 }

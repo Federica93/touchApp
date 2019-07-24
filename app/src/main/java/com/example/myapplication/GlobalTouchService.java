@@ -9,8 +9,10 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.IBinder;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -42,6 +44,7 @@ public class GlobalTouchService extends Service implements OnTouchListener {
     private long lastUpdate;
     SensorEventListener listen;
     Sensor accel, gyro, magnetic;
+    Display mDisplay;
 
     ArrayList<Velocita> velocita = new ArrayList<>();
     ArrayList<Posizione> posizionePressione = new ArrayList<>();
@@ -52,7 +55,8 @@ public class GlobalTouchService extends Service implements OnTouchListener {
     ArrayList<Punto> accelerometro = new ArrayList<>();
     ArrayList<Punto> giroscopio = new ArrayList<>();
     ArrayList<Punto> magnetometro = new ArrayList<>();
-
+    ArrayList<Punto> orientamento = new ArrayList<>();
+    float[] acc=new float[3],mag=new float[3];
     private String TAG = this.getClass().getSimpleName();
     // window manager
     private WindowManager mWindowManager;
@@ -96,7 +100,7 @@ public class GlobalTouchService extends Service implements OnTouchListener {
         super.onCreate();
 
         //scommentare
-       /* touchLayout = new LinearLayout(this);
+        touchLayout = new LinearLayout(this);
         LayoutParams lp = new LayoutParams(1, 1);
         touchLayout.setLayoutParams(lp);
         touchLayout.setOnTouchListener(this);
@@ -127,6 +131,7 @@ public class GlobalTouchService extends Service implements OnTouchListener {
         }
         mParams.gravity = Gravity.LEFT | Gravity.TOP;
         mWindowManager.addView(touchLayout, mParams);// fine*/
+        mDisplay = mWindowManager.getDefaultDisplay();
     }
 
     @Override
@@ -276,12 +281,13 @@ public class GlobalTouchService extends Service implements OnTouchListener {
             magnetometro = orderFile.getMag();
             giroscopio = orderFile.getGyr();
 
+            orientamento= getOrientation();
             outputStream = openFileOutput(file+"_"+mode+"_mergeFile.csv", Context.MODE_PRIVATE);
-            outputStream.write(("accX;accY;accZ;magX;magY;magZ;gyrX;gyrY;gyrZ;mode;walker;phone;sex\n").getBytes());
+            outputStream.write(("accX;accY;accZ;orX;orY;orZ;gyrX;gyrY;gyrZ;mode;walker;phone;sex\n").getBytes());
             for (int i = 0; i < accelerometro.size(); i++)
                 outputStream.write((accelerometro.get(i).getX() + ";" + accelerometro.get(i).getY() +
-                        ";" + accelerometro.get(i).getZ() + ";" + magnetometro.get(i).getX() + ";" + magnetometro.get(i).getY() +
-                        ";" + magnetometro.get(i).getZ() + ";" + giroscopio.get(i).getX() + ";" + giroscopio.get(i).getY() +
+                        ";" + accelerometro.get(i).getZ() + ";" + Math.toDegrees(orientamento.get(i).getX()) + ";" + Math.toDegrees(orientamento.get(i).getY()) +
+                        ";" + Math.toDegrees(orientamento.get(i).getZ()) + ";" + giroscopio.get(i).getX() + ";" + giroscopio.get(i).getY() +
                         ";" + giroscopio.get(i).getZ() + ";" + mode + ";" + walker +";" + phone + ";" +sex+ "\n").getBytes());
             outputStream.flush();
             outputStream.close();
@@ -321,6 +327,57 @@ public class GlobalTouchService extends Service implements OnTouchListener {
         System.out.println("magnetometro: x=" + x + " y=" + y + " z=" + z + " timestamp=" + timestamp);
     }
 
+    private ArrayList<Punto> getOrientation(){
+        ArrayList<Punto> or=new ArrayList<>();
+        for (int i=0;i<accelerometro.size();i++){
+            acc[0]=accelerometro.get(i).getX();
+            acc[1]=accelerometro.get(i).getY();
+            acc[2]=accelerometro.get(i).getZ();
+            mag[0]=magnetometro.get(i).getX();
+            mag[1]=magnetometro.get(i).getY();
+            mag[2]=magnetometro.get(i).getZ();
+            float[] rotationMatrix = new float[9];
+            boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,null,acc,mag);
+
+            // Remap the matrix based on current device/activity rotation.
+            float[] rotationMatrixAdjusted = new float[9];
+            switch (mDisplay.getRotation()) {
+                case Surface.ROTATION_0:
+                    rotationMatrixAdjusted = rotationMatrix.clone();
+                    break;
+                case Surface.ROTATION_90:
+                    SensorManager.remapCoordinateSystem(rotationMatrix,
+                            SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X,
+                            rotationMatrixAdjusted);
+                    break;
+                case Surface.ROTATION_180:
+                    SensorManager.remapCoordinateSystem(rotationMatrix,
+                            SensorManager.AXIS_MINUS_X, SensorManager.AXIS_MINUS_Y,
+                            rotationMatrixAdjusted);
+                    break;
+                case Surface.ROTATION_270:
+                    SensorManager.remapCoordinateSystem(rotationMatrix,
+                            SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_X,
+                            rotationMatrixAdjusted);
+                    break;
+            }
+
+            // Get the orientation of the device (azimuth, pitch, roll) based
+            // on the rotation matrix. Output units are radians.
+            float orientationValues[] = new float[3];
+            SensorManager.getOrientation(rotationMatrixAdjusted,
+                    orientationValues);
+
+            or.add(new Punto(orientationValues[0],orientationValues[1],orientationValues[2],accelerometro.get(i).getTimestamp()));
+            // Pull out the individual values from the array.
+            //double azimuth = Math.toDegrees(orientationValues[0]);
+            //double pitch = Math.toDegrees(orientationValues[1]);
+            //double roll = Math.toDegrees(orientationValues[2]);
+
+            //System.out.println(azimuth+" "+pitch+" "+roll);
+        }
+        return or;
+    }
     public class SensorListen implements SensorEventListener {
 
         @Override
@@ -349,7 +406,7 @@ public class GlobalTouchService extends Service implements OnTouchListener {
                 }
                 lastSaved = System.currentTimeMillis();
             }
-        }
+    }
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {

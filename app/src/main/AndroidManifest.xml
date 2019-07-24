@@ -7,11 +7,12 @@
     <permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-
+        <activity android:name="ConvertActivity"></activity>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name">
@@ -22,7 +23,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".GlobalTouchService"></service>
+        <service android:name=".GlobalTouchService" />
     </application>
 
 </manifest>
